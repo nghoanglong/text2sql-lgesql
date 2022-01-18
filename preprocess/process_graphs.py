@@ -17,6 +17,11 @@ def process_dataset_graph(processor, dataset, tables, method, output_path=None, 
     if output_path is not None:
         # serialize preprocessed dataset
         pickle.dump(processed_dataset, open(output_path, 'wb'))
+        
+        # for check preprocessed graph
+        # with open(os.path.join('/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/processed_dataset_graph.txt'), 'w', encoding='utf-8') as f:
+        #   for text in processed_dataset:
+        #       f.write(str(text) + '\n')
     return processed_dataset
 
 if __name__ == '__main__':

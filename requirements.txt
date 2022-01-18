@@ -5,3 +5,4 @@ stanza==1.1.1
 nltk==3.5
 vncorenlp~=1.0.3
 gensim==4.0
+python-Levenshtein

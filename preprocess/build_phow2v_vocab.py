@@ -19,7 +19,7 @@ class PhoW2V(Embedder):
     def __init__(self, emb_path):
         load_w2v = KeyedVectors.load_word2vec_format(emb_path, binary=False)
         load_w2v.init_sims(replace=True)
-        w2v_path = os.path.join(emb_path[:emb_path.rindex("/")], 'w2v')
+        w2v_path = emb_path[:emb_path.rindex("/")]
         load_w2v.save(w2v_path)
         self.phoemb = KeyedVectors.load(w2v_path, mmap='r')
         self.dim = self.phoemb.vector_size
