@@ -28,8 +28,8 @@ table_data='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_
 train_out='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/train.lgesql.bin'
 dev_out='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/dev.lgesql.bin'
 table_out='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/tables.bin'
-vocab_phow2v='pretrained_models/glove.42b.300d/vocab_glove.txt'
-vocab_out='pretrained_models/glove.42b.300d/vocab.txt'
+vocab_phow2v='/content/text2sql-lgesql/third_party/phow2v_emb/word2vec_vi_words_300dims.txt'
+vocab_out='/content/text2sql-lgesql/third_party/phow2v_emb/vocab_pretrained.txt'
 
 echo "Start to preprocess the original train dataset ..."
 python3 -u /content/text2sql-lgesql/preprocess/process_dataset.py --db_dir ${db_path} --dataset_path ${train_data} --raw_table_path ${table_data} --table_path ${table_out} --output_path ${train_out} #--verbose > train.log

@@ -1,31 +1,18 @@
 #coding=utf8
 import argparse, os, sys, pickle, json
 import abc
-import functools
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from collections import Counter
 from gensim.models.keyedvectors import KeyedVectors
-from resources import vncorenlp
 
 class Embedder(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def tokenize(self, sentence):
-        '''Given a string, return a list of tokens suitable for lookup.'''
-        pass
-
-    @abc.abstractmethod
-    def untokenize(self, tokens):
-        '''Undo tokenize.'''
-        pass
-
-    @abc.abstractmethod
     def contains(self, token):
         pass
-
+    
     @abc.abstractmethod
-    def to(self, device):
-        '''Transfer the pretrained embeddings to the given device.'''
+    def lookup(self, token):
         pass
 
 class PhoW2V(Embedder):
@@ -37,28 +24,15 @@ class PhoW2V(Embedder):
         self.phoemb = KeyedVectors.load(w2v_path, mmap='r')
         self.dim = self.phoemb.vector_size
         self.vocab = set(self.phoemb.key_to_index.keys())
-        self.vnnlp = vncorenlp.VNCoreNLP()
 
-    @functools.lru_cache(maxsize=1024)
-    def tokenize(self, text):
-        ann = vncorenlp.tokenize(text)
-        return [tok.lower() for sent in ann for tok in sent]
-
-    @functools.lru_cache(maxsize=1024)
-    def tokenize_for_copying(self, text):
-        ann = self.vnnlp.tokenize(text)
-        text = [tok.lower() for sent in ann for tok in sent]
-        text_for_copying = [tok.lower() for sent in ann for tok in sent]
-        return text, text_for_copying
-
-    def untokenize(self, tokens):
-        return ' '.join(tokens)
+    def lookup(self, token):
+        try:
+            return self.phoemb.get_vector(token)
+        except:
+            return None
 
     def contains(self, token):
         return token in self.vocab
-
-    def to(self, device):
-        self.vectors = self.vectors.to(device)
 
 def construct_vocab_from_dataset(*data_paths, table_path='data/tables.bin', mwf=4, reference_file=None, output_path=None, sep='\t'):
     phow2v = PhoW2V(reference_file)
@@ -86,7 +60,7 @@ def construct_vocab_from_dataset(*data_paths, table_path='data/tables.bin', mwf=
             if c >= mwf:
                 oov_but_freq_words.append((w, c))
     print('Out of glove vocabulary size: %d\nAmong them, %d words occur equal or more than %d times in training dataset.' % (len(oov_words), len(oov_but_freq_words), mwf))
-    with open(output_path, 'w') as of:
+    with open(output_path, 'w', encoding='utf-8') as of:
         # first serialize oov but frequent words, allowing fine-tune them during training
         for w, c in oov_but_freq_words:
             of.write(w + sep + str(c) + '\n')
