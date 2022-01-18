@@ -42,6 +42,8 @@ def process_dataset(processor, dataset, tables, output_path=None, skip_large=Fal
     if output_path is not None:
         # serialize preprocessed dataset
         pickle.dump(processed_dataset, open(output_path, 'wb'))
+        
+        # for check preprocessed
         # with open(os.path.join('/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/processed_dataset.txt'), 'w', encoding='utf-8') as f:
         #   for text in processed_dataset:
         #       f.write(str(text) + '\n')
