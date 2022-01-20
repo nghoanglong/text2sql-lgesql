@@ -16,10 +16,9 @@ class Embedder(metaclass=abc.ABCMeta):
         pass
 
 class PhoW2V(Embedder):
-    def __init__(self, emb_path):
+    def __init__(self, emb_path, emb_path_out):
         load_w2v = KeyedVectors.load_word2vec_format(emb_path, binary=False)
-        load_w2v.init_sims(replace=True)
-        w2v_path = os.path.join(emb_path[:emb_path.rindex("/")], '/')
+        w2v_path = os.path.join(emb_path_out[:emb_path_out.rindex("/")], 'w2v')
         load_w2v.save(w2v_path)
         self.phoemb = KeyedVectors.load(w2v_path, mmap='r')
         self.dim = self.phoemb.vector_size
@@ -35,7 +34,7 @@ class PhoW2V(Embedder):
         return token in self.vocab
 
 def construct_vocab_from_dataset(*data_paths, table_path='data/tables.bin', mwf=4, reference_file=None, output_path=None, sep='\t'):
-    phow2v = PhoW2V(reference_file)
+    phow2v = PhoW2V(reference_file, output_path)
 
     words = []
     tables = pickle.load(open(table_path, 'rb'))
