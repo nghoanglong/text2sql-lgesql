@@ -8,6 +8,7 @@ __pycache__
 pretrained_models
 saved_models
 data
+third_party
 log
 exp
 *.sbatch

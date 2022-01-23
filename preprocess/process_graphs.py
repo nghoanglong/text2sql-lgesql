@@ -9,8 +9,7 @@ def process_dataset_graph(processor, dataset, tables, method, output_path=None, 
         db = tables[entry['db_id']]
         if skip_large and len(db['column_names']) > 100:
             continue
-        if (idx + 1) % 500 == 0:
-            print('Processing the %d-th example ...' % (idx + 1))
+        print('Processing the %d-th example ...' % (idx + 1))
         entry = processor.process_graph_utils(entry, db, method=method)
         processed_dataset.append(entry)
     print('In total, process %d samples, skip %d samples .' % (len(processed_dataset), len(dataset) - len(processed_dataset)))

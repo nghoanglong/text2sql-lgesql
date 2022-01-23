@@ -43,7 +43,12 @@ def process_dataset(processor, dataset, tables, output_path=None, skip_large=Fal
         # serialize preprocessed dataset
         pickle.dump(processed_dataset, open(output_path, 'wb'))
         
-        # for check preprocessed
+        # for check preprocessed colab
+        # with open(os.path.join('/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/processed_dataset.txt'), 'w', encoding='utf-8') as f:
+        #   for text in processed_dataset:
+        #       f.write(str(text) + '\n')
+
+        # for check preprocessed local
         # with open(os.path.join('/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/processed_dataset.txt'), 'w', encoding='utf-8') as f:
         #   for text in processed_dataset:
         #       f.write(str(text) + '\n')
@@ -65,14 +70,14 @@ if __name__ == '__main__':
     # loading database and dataset
     if args.raw_table_path:
         # need to preprocess database items
-        tables_list = json.load(open(args.raw_table_path, 'r'))
+        tables_list = json.load(open(args.raw_table_path, 'r', encoding="utf8"))
         print('Firstly, preprocess the original databases ...')
         start_time = time.time()
         tables = process_tables(processor, tables_list, args.table_path, args.verbose)
         print('Databases preprocessing costs %.4fs .' % (time.time() - start_time))
     else:
         tables = pickle.load(open(args.table_path, 'rb'))
-    dataset = json.load(open(args.dataset_path, 'r'))
+    dataset = json.load(open(args.dataset_path, 'r', encoding="utf8"))
     start_time = time.time()
     dataset = process_dataset(processor, dataset, tables, args.output_path, args.skip_large, verbose=args.verbose)
     print('Dataset preprocessing costs %.4fs .' % (time.time() - start_time))

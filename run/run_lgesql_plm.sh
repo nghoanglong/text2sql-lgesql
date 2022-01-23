@@ -1,7 +1,7 @@
 task=lgesql_large
 seed=999
 device=0
-testing='' #'--testing'
+testing='' #'--testing' default - False
 read_model_path=''
 
 model=lgesql

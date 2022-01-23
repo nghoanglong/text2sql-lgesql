@@ -12,7 +12,7 @@ class VNCoreNLP:
             extract_dir = os.path.abspath(
                 os.path.join(
                     os.path.dirname(__file__),
-                    '../../third_party'))
+                    '../third_party'))
             r = requests.get('https://github.com/vncorenlp/VnCoreNLP/archive/master.zip')
             z = zipfile.ZipFile(io.BytesIO(r.content))
             z.extractall(extract_dir)

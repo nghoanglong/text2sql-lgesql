@@ -3,7 +3,7 @@ BOS = '[CLS]'
 EOS = '[SEP]'
 UNK = '[UNK]'
 
-# GRAMMAR_FILEPATH = 'asdl/sql/grammar/sql_asdl_v2.txt'
+# GRAMMAR_FILEPATH = '../asdl/sql/grammar/sql_asdl_v2.txt'
 GRAMMAR_FILEPATH = '/content/text2sql-lgesql/asdl/sql/grammar/sql_asdl_v2.txt'
 SCHEMA_TYPES = ['table', 'others', 'text', 'time', 'number', 'boolean']
 MAX_RELATIVE_DIST = 2
