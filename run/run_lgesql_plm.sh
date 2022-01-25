@@ -1,3 +1,9 @@
+# data
+table_path='data/raw_table.json'
+table='data/preprocess_table.bin'
+db_dir='data/database_dir'
+data_path='data/preprocessed_data'
+
 task=lgesql_large
 seed=999
 device=0
@@ -47,7 +53,8 @@ max_epoch=200
 max_norm=5
 beam_size=5
 
-python scripts/text2sql.py --task $task --seed $seed --device $device $testing $read_model_path \
+python scripts/text2sql.py --table_path $table_path --table $table --db_dir $db_dir --data_path $data_path \
+    --task $task --seed $seed --device $device $testing $read_model_path \
     --plm $plm --gnn_hidden_size $gnn_hidden_size --dropout $dropout --attn_drop $attn_drop --att_vec_size $att_vec_size \
     --model $model --output_model $output_model --local_and_nonlocal $local_and_nonlocal --score_function $score_function $relation_share_heads \
     --subword_aggregation $subword_aggregation --schema_aggregation $schema_aggregation --gnn_num_layers $gnn_num_layers --num_heads $num_heads $sep_cxt \

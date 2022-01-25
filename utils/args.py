@@ -16,6 +16,10 @@ def init_args(params=sys.argv[1:]):
 
 def add_argument_base(arg_parser):
     #### General configuration ####
+    arg_parser.add_argument('--table_path', default='data/tables.json', help='raw table')
+    arg_parser.add_argument('--table', default='data/tables.bin', help='preprocessed table')
+    arg_parser.add_argument('--db_dir', default='data/database', help='database folder')
+    arg_parser.add_argument('--data_path', default='data/vitext2sql', help='data preprocessed')
     arg_parser.add_argument('--task', default='text2sql', help='task name')
     arg_parser.add_argument('--seed', default=999, type=int, help='Random seed')
     arg_parser.add_argument('--device', type=int, default=0, help='Use which device: -1 -> cpu ; the index of gpu o.w.')
@@ -41,7 +45,7 @@ def add_argument_encoder(arg_parser):
     arg_parser.add_argument('--local_and_nonlocal', choices=['mmc', 'msde', 'local', 'global'], default='mmc', 
         help='how to integrate local and non-local relations: mmc -> multi-head multi-view concatenation ; msde -> mixed static and dynamic embeddings')
     arg_parser.add_argument('--output_model', choices=['without_pruning', 'with_pruning'], default='without_pruning', help='whether add graph pruning')
-    arg_parser.add_argument('--plm', type=str, choices=['phobert-base', 'bert-base-uncased', 'bert-large-uncased', 'bert-large-uncased-whole-word-masking',
+    arg_parser.add_argument('--plm', type=str, choices=['vinai/phobert-large', 'bert-base-uncased', 'bert-large-uncased', 'bert-large-uncased-whole-word-masking',
         'roberta-base', 'roberta-large', 'grappa_large_jnt', 'electra-base-discriminator', 'electra-large-discriminator'], help='pretrained model name')
     arg_parser.add_argument('--subword_aggregation', choices=['mean-pooling', 'max-pooling', 'attentive-pooling'], default='attentive-pooling', help='aggregate subword feats from PLM')
     arg_parser.add_argument('--schema_aggregation', choices=['mean-pooling', 'max-pooling', 'attentive-pooling', 'head+tail'], default='head+tail', help='aggregate schema words feats')

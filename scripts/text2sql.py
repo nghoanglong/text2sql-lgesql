@@ -30,8 +30,9 @@ if args.read_model_path:
 else:
     params = args
 # set up the grammar, transition system, evaluator, etc.
-Example.configuration(plm=params.plm, method=params.model)
-train_dataset, dev_dataset = Example.load_dataset('train'), Example.load_dataset('dev')
+Example.configuration(plm=params.plm, method=params.model, table_path=params.table_path, tables=params.table, db_dir=params.db_dir)
+train_dataset, dev_dataset = Example.load_dataset(choice='train', data_path=params.data_path), \
+                             Example.load_dataset(choice='dev', data_path=params.data_path)
 logger.info("Load dataset and database finished, cost %.4fs ..." % (time.time() - start_time))
 logger.info("Dataset size: train -> %d ; dev -> %d" % (len(train_dataset), len(dev_dataset)))
 sql_trans, evaluator = Example.trans, Example.evaluator
