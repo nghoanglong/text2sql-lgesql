@@ -35,7 +35,7 @@ class Example():
     @classmethod
     def load_dataset(cls, choice, data_path, debug=False):
         assert choice in ['train', 'dev']
-        fp = os.path.join('data', choice + '.' + cls.method + '.bin')
+        fp = os.path.join(data_path, choice + '.' + cls.method + '.bin')
         datasets = pickle.load(open(fp, 'rb'))
         # question_lens = [len(ex['processed_question_toks']) for ex in datasets]
         # print('Max/Min/Avg question length in %s dataset is: %d/%d/%.2f' % (choice, max(question_lens), min(question_lens), float(sum(question_lens))/len(question_lens)))

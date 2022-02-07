@@ -1,8 +1,8 @@
-# data
-table_path='data/raw_table.json'
-table='data/preprocess_table.bin'
-db_dir='data/database_dir'
-data_path='data/preprocessed_data'
+# colab run
+table_path='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/tables.json'
+table='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/tables.bin'
+db_dir='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/database'
+data_path='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out'
 
 task=lgesql_large
 seed=999
@@ -12,8 +12,10 @@ read_model_path=''
 
 model=lgesql
 output_model=with_pruning # without_pruning
-local_and_nonlocal=$1 # mmc, msde, local
-plm=$2
+# local_and_nonlocal=$2 # mmc, msde, local
+local_and_nonlocal='msde' # colab test
+# plm=$2
+plm= 'vinai/phobert-large' # colab test
 subword_aggregation=attentive-pooling
 schema_aggregation=head+tail
 gnn_hidden_size=512
@@ -53,7 +55,8 @@ max_epoch=200
 max_norm=5
 beam_size=5
 
-python scripts/text2sql.py --table_path $table_path --table $table --db_dir $db_dir --data_path $data_path \
+# colab test
+python ../scripts/text2sql.py --table_path $table_path --table $table --db_dir $db_dir --data_path $data_path \
     --task $task --seed $seed --device $device $testing $read_model_path \
     --plm $plm --gnn_hidden_size $gnn_hidden_size --dropout $dropout --attn_drop $attn_drop --att_vec_size $att_vec_size \
     --model $model --output_model $output_model --local_and_nonlocal $local_and_nonlocal --score_function $score_function $relation_share_heads \
@@ -63,3 +66,14 @@ python scripts/text2sql.py --table_path $table_path --table $table --db_dir $db_
     $no_context_feeding $no_parent_production_embed $no_parent_field_embed $no_parent_field_type_embed $no_parent_state \
     --batch_size $batch_size --grad_accumulate $grad_accumulate --lr $lr --l2 $l2 --warmup_ratio $warmup_ratio --lr_schedule $lr_schedule --eval_after_epoch $eval_after_epoch \
     --smoothing $smoothing --layerwise_decay $layerwise_decay --max_epoch $max_epoch --max_norm $max_norm --beam_size $beam_size   
+
+# python scripts/text2sql.py --table_path $table_path --table $table --db_dir $db_dir --data_path $data_path \
+#     --task $task --seed $seed --device $device $testing $read_model_path \
+#     --plm $plm --gnn_hidden_size $gnn_hidden_size --dropout $dropout --attn_drop $attn_drop --att_vec_size $att_vec_size \
+#     --model $model --output_model $output_model --local_and_nonlocal $local_and_nonlocal --score_function $score_function $relation_share_heads \
+#     --subword_aggregation $subword_aggregation --schema_aggregation $schema_aggregation --gnn_num_layers $gnn_num_layers --num_heads $num_heads $sep_cxt \
+#     --lstm $lstm --chunk_size $chunk_size --drop_connect $drop_connect --lstm_hidden_size $lstm_hidden_size --lstm_num_layers $lstm_num_layers \
+#     --action_embed_size $action_embed_size --field_embed_size $field_embed_size --type_embed_size $type_embed_size \
+#     $no_context_feeding $no_parent_production_embed $no_parent_field_embed $no_parent_field_type_embed $no_parent_state \
+#     --batch_size $batch_size --grad_accumulate $grad_accumulate --lr $lr --l2 $l2 --warmup_ratio $warmup_ratio --lr_schedule $lr_schedule --eval_after_epoch $eval_after_epoch \
+#     --smoothing $smoothing --layerwise_decay $layerwise_decay --max_epoch $max_epoch --max_norm $max_norm --beam_size $beam_size   
