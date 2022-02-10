@@ -12,3 +12,4 @@ third_party
 log
 exp
 *.sbatch
+processed_line.txt
