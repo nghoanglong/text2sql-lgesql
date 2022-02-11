@@ -16,10 +16,10 @@ def init_args(params=sys.argv[1:]):
 
 def add_argument_base(arg_parser):
     #### General configuration ####
-    arg_parser.add_argument('--table_path', default='data/tables.json', help='raw table')
-    arg_parser.add_argument('--table', default='data/tables.bin', help='preprocessed table')
-    arg_parser.add_argument('--db_dir', default='data/database', help='database folder')
-    arg_parser.add_argument('--data_path', default='data/vitext2sql', help='data preprocessed')
+    arg_parser.add_argument('--table_path', default='data/tables.json', type=str, help='raw table')
+    arg_parser.add_argument('--table', default='data/tables.bin', type=str, help='preprocessed table')
+    arg_parser.add_argument('--db_dir', default='data/database', type=str, help='database folder')
+    arg_parser.add_argument('--data_path', default='data/vitext2sql', type=str, help='data preprocessed')
     arg_parser.add_argument('--task', default='text2sql', help='task name')
     arg_parser.add_argument('--seed', default=999, type=int, help='Random seed')
     arg_parser.add_argument('--device', type=int, default=0, help='Use which device: -1 -> cpu ; the index of gpu o.w.')

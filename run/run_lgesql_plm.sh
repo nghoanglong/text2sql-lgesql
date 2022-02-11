@@ -1,8 +1,8 @@
 # colab run
-table_path='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/tables.json'
-table='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/tables.bin'
-db_dir='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/database'
-data_path='/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out'
+table_path=/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/tables.json
+table=/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out/tables.bin
+db_dir=/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/database
+data_path=/content/drive/MyDrive/Datasets/ratsql/datasets/vitext2sql_syllable_level/linegraph_out
 
 task=lgesql_large
 seed=999
@@ -13,9 +13,9 @@ read_model_path=''
 model=lgesql
 output_model=with_pruning # without_pruning
 # local_and_nonlocal=$2 # mmc, msde, local
-local_and_nonlocal='msde' # colab test
+local_and_nonlocal=msde # colab test
 # plm=$2
-plm='vinai/phobert-large' # colab test
+plm=vinai/phobert-large # colab test
 subword_aggregation=attentive-pooling
 schema_aggregation=head+tail
 gnn_hidden_size=512
