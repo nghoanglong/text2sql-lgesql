@@ -3,7 +3,6 @@ import sys
 import requests, zipfile, io
 
 from vncorenlp import VnCoreNLP
-import requests
 
 
 class VNCoreNLP:

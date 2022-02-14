@@ -76,7 +76,7 @@ class Example():
             self.question_mask_plm = [] # remove SEP token in our case
             self.question_subword_len = [] # subword len for each word, exclude SEP token
             for w in self.question:
-                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)) # tạm thời chưa bật vì test trên colab
+                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
                 # toks = t.convert_tokens_to_ids(t.tokenize(w))
                 self.question_id.extend(toks)
                 self.question_subword_len.append(len(toks))
@@ -89,7 +89,7 @@ class Example():
             for s in self.table:
                 l = 0
                 for w in s:
-                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)) # tạm thời chưa bật vì test trên colab
+                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
                     # toks = t.convert_tokens_to_ids(t.tokenize(w))
                     self.table_id.extend(toks)
                     self.table_subword_len.append(len(toks))
@@ -103,7 +103,7 @@ class Example():
             for s in self.column:
                 l = 0
                 for w in s:
-                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)) # tạm thời chưa bật vì test trên colab
+                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
                     # toks = t.convert_tokens_to_ids(t.tokenize(w))
                     self.column_id.extend(toks)
                     self.column_subword_len.append(len(toks))
