@@ -29,7 +29,7 @@ class Example():
                 filepath='./pretrained_models/glove.42b.300d/vocab.txt', specials=SCHEMA_TYPES) # word vocab for glove.42B.300d
         else:
             cls.tokenizer = AutoTokenizer.from_pretrained(plm)
-            cls._tokenize = vncorenlp.VNCoreNLP()
+            cls._tokenize = vncorenlp.VNCoreNLP() # tạm thời chưa bật vì test trên colab
             cls.word_vocab = cls.tokenizer.get_vocab()
         cls.relation_vocab = Vocab(padding=False, unk=False, boundary=False, iterable=RELATIONS, default=None)
         cls.graph_factory = GraphFactory(cls.method, cls.relation_vocab)
@@ -70,13 +70,14 @@ class Example():
             self.table_id = [[Example.word_vocab[w] for w in t] for t in self.table]
         else:
             t = Example.tokenizer
-            main_toks = Example._tokenize
+            main_toks = Example._tokenize # tạm thời chưa bật vì test trên colab
             self.question = [q.lower() for q in ex['raw_question_toks']]
             self.question_id = [t.cls_token_id] # map token to id
             self.question_mask_plm = [] # remove SEP token in our case
             self.question_subword_len = [] # subword len for each word, exclude SEP token
             for w in self.question:
-                toks = t.convert_tokens_to_ids(main_toks.tokenize(w))
+                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)) # tạm thời chưa bật vì test trên colab
+                # toks = t.convert_tokens_to_ids(t.tokenize(w))
                 self.question_id.extend(toks)
                 self.question_subword_len.append(len(toks))
             self.question_mask_plm = [0] + [1] * (len(self.question_id) - 1) + [0]
@@ -88,7 +89,8 @@ class Example():
             for s in self.table:
                 l = 0
                 for w in s:
-                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w))
+                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)) # tạm thời chưa bật vì test trên colab
+                    # toks = t.convert_tokens_to_ids(t.tokenize(w))
                     self.table_id.extend(toks)
                     self.table_subword_len.append(len(toks))
                     l += len(toks)
@@ -101,7 +103,8 @@ class Example():
             for s in self.column:
                 l = 0
                 for w in s:
-                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w))
+                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)) # tạm thời chưa bật vì test trên colab
+                    # toks = t.convert_tokens_to_ids(t.tokenize(w))
                     self.column_id.extend(toks)
                     self.column_subword_len.append(len(toks))
                     l += len(toks)
