@@ -70,7 +70,6 @@ class Example():
             self.table_id = [[Example.word_vocab[w] for w in t] for t in self.table]
         else:
             t = Example.tokenizer
-            max_len_phobert = 252
             main_toks = Example._tokenize # tạm thời chưa bật vì test trên colab
             self.question = [q.lower() for q in ex['raw_question_toks']]
             self.question_id = [t.cls_token_id] # map token to id
