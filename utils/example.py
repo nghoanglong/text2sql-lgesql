@@ -70,6 +70,7 @@ class Example():
             self.table_id = [[Example.word_vocab[w] for w in t] for t in self.table]
         else:
             t = Example.tokenizer
+            max_len_phobert = 252
             main_toks = Example._tokenize # tạm thời chưa bật vì test trên colab
             self.question = [q.lower() for q in ex['raw_question_toks']]
             self.question_id = [t.cls_token_id] # map token to id
@@ -112,14 +113,20 @@ class Example():
             self.column_mask_plm = [1] * len(self.column_id) + [0]
             self.column_id.append(t.sep_token_id)
 
-            self.input_id = self.question_id + self.table_id + self.column_id
+            temp_input_id = self.question_id + self.table_id + self.column_id
+            self.input_id = self.question_id + self.table_id + self.column_id if len(temp_input_id) <= 252 else temp_input_id[0:252]
             self.segment_id = [0] * len(self.question_id) + [1] * (len(self.table_id) + len(self.column_id)) \
                 if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') and Example.plm != 'vinai/phobert-large' \
-                else [0] * (len(self.question_id) + len(self.table_id) + len(self.column_id))
+                else [0] * len(temp_input_id) if len(temp_input_id) <= 252 else [0] * 252
 
-            self.question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
-            self.table_mask_plm = [0] * len(self.question_id) + self.table_mask_plm + [0] * len(self.column_id)
-            self.column_mask_plm = [0] * (len(self.question_id) + len(self.table_id)) + self.column_mask_plm
+            temp_question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
+            self.question_mask_plm = temp_question_mask_plm if len(temp_question_mask_plm) <= 252 else temp_question_mask_plm[0:252]
+            
+            temp_table_mask_plm = [0] * len(self.question_id) + self.table_mask_plm + [0] * len(self.column_id)
+            self.table_mask_plm = temp_table_mask_plm + [0] * len(self.column_id) if len(temp_table_mask_plm) < 252 else temp_table_mask_plm[0:252]
+            
+            temp_column_mask_plm = [0] * (len(self.question_id) + len(self.table_id)) + self.column_mask_plm
+            self.column_mask_plm = temp_column_mask_plm if len(temp_column_mask_plm) <= 252 else temp_column_mask_plm[0:252]
 
         self.graph = Example.graph_factory.graph_construction(ex, db)
 
