@@ -71,18 +71,6 @@ class Example():
         else:
             t = Example.tokenizer
             main_toks = Example._tokenize # tạm thời chưa bật vì test trên colab
-            self.question = [q.lower() for q in ex['raw_question_toks']]
-            self.question_id = [t.cls_token_id] # map token to id
-            self.question_mask_plm = [] # remove SEP token in our case
-            self.question_subword_len = [] # subword len for each word, exclude SEP token
-            for w in self.question:
-                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
-                # toks = t.convert_tokens_to_ids(t.tokenize(w))
-                self.question_id.extend(toks)
-                self.question_subword_len.append(len(toks))
-            self.question_mask_plm = [0] + [1] * (len(self.question_id) - 1) + [0]
-            self.question_id.append(t.sep_token_id)
-
             self.table = [['table'] + t.lower().split() for t in db['table_names']]
             self.table_id, self.table_mask_plm, self.table_subword_len = [], [], []
             self.table_word_len = []
@@ -112,20 +100,40 @@ class Example():
             self.column_mask_plm = [1] * len(self.column_id) + [0]
             self.column_id.append(t.sep_token_id)
 
+            self.question = [q.lower() for q in ex['raw_question_toks']]
+            self.question_id = [t.cls_token_id]
+            self.question_mask_plm = [] # remove SEP token in our case
+            self.question_subword_len = [] # subword len for each word, exclude SEP token
+            for w in self.question:
+                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
+                # toks = t.convert_tokens_to_ids(t.tokenize(w))
+                self.question_id.extend(toks)
+                self.question_subword_len.append(len(toks))
+            max_phobert_len = 252
             temp_input_id = self.question_id + self.table_id + self.column_id
-            self.input_id = self.question_id + self.table_id + self.column_id if len(temp_input_id) <= 252 else temp_input_id[0:252]
+            if len(temp_input_id) > max_phobert_len:
+                remain = max_phobert_len - len(temp_input_id) - 1
+                num_remove, val_remove = 0, 0
+                for value in reversed(self.question_subword_len):
+                    num_remove += 1
+                    val_remove += value
+                    if val_remove >= remain:
+                        break
+                self.question_id = self.question_id[: len(self.question_id) - val_remove]
+                self.question_subword_len = self.question_subword_len[: len(self.question_subword_len) - num_remove]
+            self.question_mask_plm = [0] + [1] * (len(self.question_id) - 1) + [0]
+            self.question_id.append(t.sep_token_id)
+
+            self.input_id = self.question_id + self.table_id + self.column_id
+            assert len(self.input_id) <= 252
+            
             self.segment_id = [0] * len(self.question_id) + [1] * (len(self.table_id) + len(self.column_id)) \
                 if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') and Example.plm != 'vinai/phobert-large' \
-                else [0] * len(temp_input_id) if len(temp_input_id) <= 252 else [0] * 252
+                else [0] * len(self.input_id)
 
-            temp_question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
-            self.question_mask_plm = temp_question_mask_plm if len(temp_question_mask_plm) <= 252 else temp_question_mask_plm[0:252]
-            
-            temp_table_mask_plm = [0] * len(self.question_id) + self.table_mask_plm + [0] * len(self.column_id)
-            self.table_mask_plm = temp_table_mask_plm + [0] * len(self.column_id) if len(temp_table_mask_plm) < 252 else temp_table_mask_plm[0:252]
-            
-            temp_column_mask_plm = [0] * (len(self.question_id) + len(self.table_id)) + self.column_mask_plm
-            self.column_mask_plm = temp_column_mask_plm if len(temp_column_mask_plm) <= 252 else temp_column_mask_plm[0:252]
+            self.question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
+            self.table_mask_plm = [0] * len(self.question_id) + self.table_mask_plm + [0] * len(self.column_id)
+            self.column_mask_plm = [0] * (len(self.question_id) + len(self.table_id)) + self.column_mask_plm
 
         self.graph = Example.graph_factory.graph_construction(ex, db)
 
