@@ -112,7 +112,7 @@ class Example():
             max_phobert_len = 252
             temp_input_id = self.question_id + self.table_id + self.column_id
             if len(temp_input_id) > max_phobert_len:
-                remain = max_phobert_len - len(temp_input_id) - 1
+                remain = len(temp_input_id) - 1 - max_phobert_len 
                 num_remove, val_remove = 0, 0
                 for value in reversed(self.question_subword_len):
                     num_remove += 1
@@ -125,6 +125,7 @@ class Example():
             self.question_id.append(t.sep_token_id)
 
             self.input_id = self.question_id + self.table_id + self.column_id
+
             assert len(self.input_id) <= 252
             
             self.segment_id = [0] * len(self.question_id) + [1] * (len(self.table_id) + len(self.column_id)) \
