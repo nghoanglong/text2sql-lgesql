@@ -71,6 +71,17 @@ class Example():
         else:
             t = Example.tokenizer
             main_toks = Example._tokenize # tạm thời chưa bật vì test trên colab
+            self.question = [q.lower() for q in ex['raw_question_toks']]
+            self.question_id = [t.cls_token_id] # map token to id
+            self.question_mask_plm = [] # remove SEP token in our case
+            self.question_subword_len = [] # subword len for each word, exclude SEP token
+            for w in self.question:
+                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
+                self.question_id.extend(toks)
+                self.question_subword_len.append(len(toks))
+            self.question_mask_plm = [0] + [1] * (len(self.question_id) - 1) + [0]
+            self.question_id.append(t.sep_token_id)
+
             self.table = [['table'] + t.lower().split() for t in db['table_names']]
             self.table_id, self.table_mask_plm, self.table_subword_len = [], [], []
             self.table_word_len = []
@@ -78,11 +89,11 @@ class Example():
                 l = 0
                 for w in s:
                     toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
-                    # toks = t.convert_tokens_to_ids(t.tokenize(w))
                     self.table_id.extend(toks)
                     self.table_subword_len.append(len(toks))
                     l += len(toks)
                 self.table_word_len.append(l)
+            self.table_mask_plm = [1] * len(self.table_id)
 
             self.column = [[db['column_types'][idx].lower()] + c.lower().split() for idx, (_, c) in enumerate(db['column_names'])]
             self.column_id, self.column_mask_plm, self.column_subword_len = [], [], []
@@ -90,89 +101,125 @@ class Example():
             for s in self.column:
                 l = 0
                 for w in s:
-                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
-                    # toks = t.convert_tokens_to_ids(t.tokenize(w))
+                    toks = t.convert_tokens_to_ids(t.tokenize(w))
                     self.column_id.extend(toks)
                     self.column_subword_len.append(len(toks))
                     l += len(toks)
                 self.column_word_len.append(l)
+            self.column_mask_plm = [1] * len(self.column_id) + [0]
             self.column_id.append(t.sep_token_id)
 
-            self.question = [q.lower() for q in ex['raw_question_toks']]
-            self.question_id = [t.cls_token_id]
-            self.question_mask_plm = [] # remove SEP token in our case
-            self.question_subword_len = [] # subword len for each word, exclude SEP token
-            for w in self.question:
-                toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
-                # toks = t.convert_tokens_to_ids(t.tokenize(w))
-                self.question_id.extend(toks)
-                self.question_subword_len.append(len(toks))
-                
-            max_phobert_len = 252
-            temp_input_id = self.question_id + self.table_id + self.column_id
-            if len(temp_input_id) >= max_phobert_len:
-                remain = len(temp_input_id) + 1 - max_phobert_len 
-                num_remove, val_remove = 0, 0
-
-                for value in reversed(self.question_subword_len):
-                    num_remove += 1
-                    val_remove += value
-                    if val_remove >= remain:
-                        break
-                self.question_id = self.question_id[: len(self.question_id) - val_remove]
-                self.question_subword_len = self.question_subword_len[: len(self.question_subword_len) - num_remove]
-
-                if remain - val_remove > 0:
-                    remain2 = remain - val_remove
-                    num_remove2, val_remove2 = 0, 0
-                    for value in reversed(self.column_subword_len):
-                        num_remove2 += 1
-                        val_remove2 += value
-                        if val_remove2 >= remain2:
-                            break
-                    temp_col_rm, count_col_rm = 0, 0
-                    for value in reversed(self.column_word_len):
-                        temp_col_rm += value
-                        count_col_rm += 1
-                        if temp_col_rm == val_remove2:
-                            self.column_word_len = self.column_word_len[: len(self.column_word_len) - count_col_rm]
-                            break
-                    self.column_id = self.column_id[: len(self.column_id) - val_remove2]
-                    self.column_subword_len = self.column_subword_len[: len(self.column_subword_len) - num_remove2]
-                    if remain2 - val_remove2 > 0:
-                        remain3 = remain2 - val_remove2
-                        num_remove3, val_remove3 = 0, 0
-                        for value in reversed(self.table_subword_len):
-                            num_remove3 += 1
-                            val_remove3 += value
-                            if val_remove3 >= remain3:
-                                break
-                        temp_tab_rm, count_tab_rm = 0, 0
-                        for value in reversed(self.table_word_len):
-                            temp_tab_rm += value
-                            count_tab_rm += 1
-                            if temp_tab_rm == val_remove3:
-                                self.table_word_len = self.table_word_len[: len(self.table_word_len) - count_tab_rm]
-                                break
-                        self.table_id = self.table_id[: len(self.table_id) - val_remove3]
-                        self.table_subword_len = self.table_subword_len[: len(self.table_subword_len) - num_remove3]
-
-            self.column_mask_plm = [1] * len(self.column_id) + [0]
-            self.table_mask_plm = [1] * len(self.table_id)
-            self.question_mask_plm = [0] + [1] * (len(self.question_id) - 1) + [0]
-            self.question_id.append(t.sep_token_id)
-
             self.input_id = self.question_id + self.table_id + self.column_id
-
-            assert len(self.input_id) <= 252
-            
             self.segment_id = [0] * len(self.question_id) + [1] * (len(self.table_id) + len(self.column_id)) \
-                if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') and Example.plm != 'vinai/phobert-large' \
-                else [0] * len(self.input_id)
+                if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') \
+                else [0] * (len(self.question_id) + len(self.table_id) + len(self.column_id))
 
             self.question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
             self.table_mask_plm = [0] * len(self.question_id) + self.table_mask_plm + [0] * len(self.column_id)
             self.column_mask_plm = [0] * (len(self.question_id) + len(self.table_id)) + self.column_mask_plm
+
+            # self.table = [['table'] + t.lower().split() for t in db['table_names']]
+            # self.table_id, self.table_mask_plm, self.table_subword_len = [], [], []
+            # self.table_word_len = []
+            # for s in self.table:
+            #     l = 0
+            #     for w in s:
+            #         toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
+            #         # toks = t.convert_tokens_to_ids(t.tokenize(w))
+            #         self.table_id.extend(toks)
+            #         self.table_subword_len.append(len(toks))
+            #         l += len(toks)
+            #     self.table_word_len.append(l)
+
+            # self.column = [[db['column_types'][idx].lower()] + c.lower().split() for idx, (_, c) in enumerate(db['column_names'])]
+            # self.column_id, self.column_mask_plm, self.column_subword_len = [], [], []
+            # self.column_word_len = []
+            # for s in self.column:
+            #     l = 0
+            #     for w in s:
+            #         toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
+            #         # toks = t.convert_tokens_to_ids(t.tokenize(w))
+            #         self.column_id.extend(toks)
+            #         self.column_subword_len.append(len(toks))
+            #         l += len(toks)
+            #     self.column_word_len.append(l)
+            # self.column_id.append(t.sep_token_id)
+
+            # self.question = [q.lower() for q in ex['raw_question_toks']]
+            # self.question_id = [t.cls_token_id]
+            # self.question_mask_plm = [] # remove SEP token in our case
+            # self.question_subword_len = [] # subword len for each word, exclude SEP token
+            # for w in self.question:
+            #     toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0]) # tạm thời chưa bật vì test trên colab
+            #     # toks = t.convert_tokens_to_ids(t.tokenize(w))
+            #     self.question_id.extend(toks)
+            #     self.question_subword_len.append(len(toks))
+                
+            # max_phobert_len = 252
+            # temp_input_id = self.question_id + self.table_id + self.column_id
+            # if len(temp_input_id) >= max_phobert_len:
+            #     remain = len(temp_input_id) + 1 - max_phobert_len 
+            #     num_remove, val_remove = 0, 0
+
+            #     for value in reversed(self.question_subword_len):
+            #         num_remove += 1
+            #         val_remove += value
+            #         if val_remove >= remain:
+            #             break
+            #     self.question_id = self.question_id[: len(self.question_id) - val_remove]
+            #     self.question_subword_len = self.question_subword_len[: len(self.question_subword_len) - num_remove]
+
+            #     if remain - val_remove > 0:
+            #         remain2 = remain - val_remove
+            #         num_remove2, val_remove2 = 0, 0
+            #         for value in reversed(self.column_subword_len):
+            #             num_remove2 += 1
+            #             val_remove2 += value
+            #             if val_remove2 >= remain2:
+            #                 break
+            #         temp_col_rm, count_col_rm = 0, 0
+            #         for value in reversed(self.column_word_len):
+            #             temp_col_rm += value
+            #             count_col_rm += 1
+            #             if temp_col_rm == val_remove2:
+            #                 self.column_word_len = self.column_word_len[: len(self.column_word_len) - count_col_rm]
+            #                 break
+            #         self.column_id = self.column_id[: len(self.column_id) - val_remove2]
+            #         self.column_subword_len = self.column_subword_len[: len(self.column_subword_len) - num_remove2]
+            #         if remain2 - val_remove2 > 0:
+            #             remain3 = remain2 - val_remove2
+            #             num_remove3, val_remove3 = 0, 0
+            #             for value in reversed(self.table_subword_len):
+            #                 num_remove3 += 1
+            #                 val_remove3 += value
+            #                 if val_remove3 >= remain3:
+            #                     break
+            #             temp_tab_rm, count_tab_rm = 0, 0
+            #             for value in reversed(self.table_word_len):
+            #                 temp_tab_rm += value
+            #                 count_tab_rm += 1
+            #                 if temp_tab_rm == val_remove3:
+            #                     self.table_word_len = self.table_word_len[: len(self.table_word_len) - count_tab_rm]
+            #                     break
+            #             self.table_id = self.table_id[: len(self.table_id) - val_remove3]
+            #             self.table_subword_len = self.table_subword_len[: len(self.table_subword_len) - num_remove3]
+
+            # self.column_mask_plm = [1] * len(self.column_id) + [0]
+            # self.table_mask_plm = [1] * len(self.table_id)
+            # self.question_mask_plm = [0] + [1] * (len(self.question_id) - 1) + [0]
+            # self.question_id.append(t.sep_token_id)
+
+            # self.input_id = self.question_id + self.table_id + self.column_id
+
+            # assert len(self.input_id) <= 252
+            
+            # self.segment_id = [0] * len(self.question_id) + [1] * (len(self.table_id) + len(self.column_id)) \
+            #     if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') and Example.plm != 'vinai/phobert-large' \
+            #     else [0] * len(self.input_id)
+
+            # self.question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
+            # self.table_mask_plm = [0] * len(self.question_id) + self.table_mask_plm + [0] * len(self.column_id)
+            # self.column_mask_plm = [0] * (len(self.question_id) + len(self.table_id)) + self.column_mask_plm
 
         self.graph = Example.graph_factory.graph_construction(ex, db)
 
