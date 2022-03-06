@@ -111,7 +111,7 @@ class Example():
 
             self.input_id = self.question_id + self.table_id + self.column_id
             self.segment_id = [0] * len(self.question_id) + [1] * (len(self.table_id) + len(self.column_id)) \
-                if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') \
+                if Example.plm != 'grappa_large_jnt' and not Example.plm.startswith('roberta') and Example.plm != 'vinai/phobert-large' \
                 else [0] * (len(self.question_id) + len(self.table_id) + len(self.column_id))
 
             self.question_mask_plm = self.question_mask_plm + [0] * (len(self.table_id) + len(self.column_id))
