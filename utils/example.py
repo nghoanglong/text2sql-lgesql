@@ -101,7 +101,7 @@ class Example():
             for s in self.column:
                 l = 0
                 for w in s:
-                    toks = t.convert_tokens_to_ids(t.tokenize(w))
+                    toks = t.convert_tokens_to_ids(main_toks.tokenize(w)[0])
                     self.column_id.extend(toks)
                     self.column_subword_len.append(len(toks))
                     l += len(toks)
@@ -233,7 +233,7 @@ def get_position_ids(ex, shuffle=True):
     # cluster columns with their corresponding table and randomly shuffle tables and columns
     # [CLS] q1 q2 ... [SEP] * t1 c1 c2 c3 t2 c4 c5 ... [SEP]
     db, table_word_len, column_word_len = ex.db, ex.table_word_len, ex.column_word_len
-    table_num, column_num = len(db['table_names']), len(db['column_names'])
+    table_num, column_num = len(db['table_names']), len(db['column_names']) # get số lượng tables và columns
     question_position_id = list(range(len(ex.question_id)))
     start = len(question_position_id)
     table_position_id, column_position_id = [None] * table_num, [None] * column_num

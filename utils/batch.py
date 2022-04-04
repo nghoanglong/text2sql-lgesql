@@ -41,36 +41,87 @@ def from_example_list_base(ex_list, device='cpu', train=True):
         # prepare inputs for pretrained models
         batch.inputs = {"input_ids": None, "attention_mask": None, "token_type_ids": None, "position_ids": None}
         input_lens = [len(ex.input_id) for ex in ex_list]
-        max_len =  max(input_lens) if max(input_lens) <= 252 else 252 
-        input_ids = [ex.input_id + [pad_idx] * (max_len - len(ex.input_id)) if len(ex.input_id) <= 252 \
-                    else ex.input_id[0:252] for ex in ex_list]
+        max_len = max(input_lens)
+        input_ids = [ex.input_id + [pad_idx] * (max_len - len(ex.input_id)) for ex in ex_list]
         batch.inputs["input_ids"] = torch.tensor(input_ids, dtype=torch.long, device=device)
-        attention_mask = [[1] * l + [0] * (max_len - l) if l <= 252 \
-                        else [1] * 252 for l in input_lens]
+        attention_mask = [[1] * l + [0] * (max_len - l) for l in input_lens]
         batch.inputs["attention_mask"] = torch.tensor(attention_mask, dtype=torch.float, device=device)
-        token_type_ids = [ex.segment_id + [0] * (max_len - len(ex.segment_id)) if len(ex.segment_id) <= 252 \
-                        else ex.segment_id[0:252] for ex in ex_list]
+        token_type_ids = [ex.segment_id + [0] * (max_len - len(ex.segment_id)) for ex in ex_list]
         batch.inputs["token_type_ids"] = torch.tensor(token_type_ids, dtype=torch.long, device=device)
-        position_ids = [get_position_ids(ex, shuffle=train) + [0] * (max_len - len(ex.input_id)) if len(ex.input_id) <= 252 \
-                        else get_position_ids(ex, shuffle=train)[0:252] for ex in ex_list]
+        position_ids = [get_position_ids(ex, shuffle=train) + [0] * (max_len - len(ex.input_id)) for ex in ex_list]
         batch.inputs["position_ids"] = torch.tensor(position_ids, dtype=torch.long, device=device)
         # extract representations after plm, remove [SEP]
-        question_mask_plm = [ex.question_mask_plm + [0] * (max_len - len(ex.question_mask_plm)) if len(ex.question_mask_plm) <= 252 \
-                            else ex.question_mask_plm[0:252] for ex in ex_list]
+        question_mask_plm = [ex.question_mask_plm + [0] * (max_len - len(ex.question_mask_plm)) for ex in ex_list]
         batch.question_mask_plm = torch.tensor(question_mask_plm, dtype=torch.bool, device=device)
-        table_mask_plm = [ex.table_mask_plm + [0] * (max_len - len(ex.table_mask_plm)) if len(ex.table_mask_plm) <= 252 \
-                        else ex.table_mask_plm[0:252] for ex in ex_list]
+        table_mask_plm = [ex.table_mask_plm + [0] * (max_len - len(ex.table_mask_plm)) for ex in ex_list]
         batch.table_mask_plm = torch.tensor(table_mask_plm, dtype=torch.bool, device=device)
-        column_mask_plm = [ex.column_mask_plm + [0] * (max_len - len(ex.column_mask_plm)) if len(ex.column_mask_plm) <= 252 \
-                        else ex.column_mask_plm[0:252] for ex in ex_list]
+        column_mask_plm = [ex.column_mask_plm + [0] * (max_len - len(ex.column_mask_plm)) for ex in ex_list]
         batch.column_mask_plm = torch.tensor(column_mask_plm, dtype=torch.bool, device=device)
+
+        # prepare inputs for pretrained models
+        batch.inputs = {"input_ids": None, "attention_mask": None, "li_long_seq": [], "id_map": {}}
+        input_lens = [len(ex.input_id) for ex in ex_list if len(ex.input_id) <= 252 ]
+        max_len =  max(input_lens)
+        input_ids, attention_mask, question_mask_plm, table_mask_plm, column_mask_plm = [], [], [], [], []
+        batch.question_subword_lens, batch.table_subword_lens, batch.column_subword_lens = {}, {}, {}
+        for idx, ex in enumerate(ex_list):
+            if len(ex.input_id) <= 252:
+                pos = batch.inputs["id_map"][idx] = len(batch.inputs["id_map"])
+                input_ids.append(ex.input_id + [pad_idx] * (max_len - len(ex.input_id)))
+                attention_mask.append([1] * len(ex.input_id) + [0] * (max_len - len(ex.input_id)))
+                question_mask_plm.append(ex.question_mask_plm + [0] * (max_len - len(ex.question_mask_plm)))
+                table_mask_plm.append(ex.table_mask_plm + [0] * (max_len - len(ex.table_mask_plm)))
+                column_mask_plm.append(ex.column_mask_plm + [0] * (max_len - len(ex.column_mask_plm)))
+                batch.question_subword_lens[pos] = torch.tensor([l for l in ex.question_subword_len], dtype=torch.long, device=device)
+                batch.table_subword_lens[pos] = torch.tensor([l for l in ex.table_subword_len], dtype=torch.long, device=device)
+                batch.column_subword_lens[pos] = torch.tensor([l for l in ex.column_subword_len], dtype=torch.long, device=device)
+            else:
+                batch.inputs["li_long_seq"].append(idx)
+
+        batch.inputs["input_ids"] = torch.tensor(input_ids, dtype=torch.long, device=device)
+        batch.inputs["attention_mask"] = torch.tensor(attention_mask, dtype=torch.float, device=device)
+        batch.question_mask_plm = torch.tensor(question_mask_plm, dtype=torch.bool, device=device)
+        batch.table_mask_plm = torch.tensor(table_mask_plm, dtype=torch.bool, device=device)
+        batch.column_mask_plm = torch.tensor(column_mask_plm, dtype=torch.bool, device=device)
+
+        # batch.question_subword_lens = torch.tensor(question_subword_lens, dtype=torch.long, device=device)
+        # batch.table_subword_lens = torch.tensor(table_subword_lens, dtype=torch.long, device=device)
+        # batch.column_subword_lens = torch.tensor(column_subword_lens, dtype=torch.long, device=device)
+
+        # prepare inputs for pretrained models
+        # batch.inputs = {"input_ids": None, "attention_mask": None, "token_type_ids": None, "position_ids": None}
+        # input_lens = [len(ex.input_id) for ex in ex_list]
+        # max_len =  max(input_lens) if max(input_lens) <= 252 else 252
+        # input_ids = [ex.input_id + [pad_idx] * (max_len - len(ex.input_id)) if len(ex.input_id) <= 252 \
+        #             else ex.input_id[0:252] for ex in ex_list]
+        # batch.inputs["input_ids"] = torch.tensor(input_ids, dtype=torch.long, device=device)
+        # attention_mask = [[1] * l + [0] * (max_len - l) if l <= 252 \
+        #                 else [1] * 252 for l in input_lens]
+        # batch.inputs["attention_mask"] = torch.tensor(attention_mask, dtype=torch.float, device=device)
+        # token_type_ids = [ex.segment_id + [0] * (max_len - len(ex.segment_id)) if len(ex.segment_id) <= 252 \
+        #                 else ex.segment_id[0:252] for ex in ex_list]
+        # batch.inputs["token_type_ids"] = torch.tensor(token_type_ids, dtype=torch.long, device=device)
+        # position_ids = [get_position_ids(ex, shuffle=train) + [0] * (max_len - len(ex.input_id)) if len(ex.input_id) <= 252 \
+        #                 else get_position_ids(ex, shuffle=train)[0:252] for ex in ex_list]
+        # batch.inputs["position_ids"] = torch.tensor(position_ids, dtype=torch.long, device=device)
+        # # extract representations after plm, remove [SEP]
+        # question_mask_plm = [ex.question_mask_plm + [0] * (max_len - len(ex.question_mask_plm)) if len(ex.question_mask_plm) <= 252 \
+        #                     else ex.question_mask_plm[0:252] for ex in ex_list]
+        # batch.question_mask_plm = torch.tensor(question_mask_plm, dtype=torch.bool, device=device)
+        # table_mask_plm = [ex.table_mask_plm + [0] * (max_len - len(ex.table_mask_plm)) if len(ex.table_mask_plm) <= 252 \
+        #                 else ex.table_mask_plm[0:252] for ex in ex_list]
+        # batch.table_mask_plm = torch.tensor(table_mask_plm, dtype=torch.bool, device=device)
+        # column_mask_plm = [ex.column_mask_plm + [0] * (max_len - len(ex.column_mask_plm)) if len(ex.column_mask_plm) <= 252 \
+        #                 else ex.column_mask_plm[0:252] for ex in ex_list]
+        # batch.column_mask_plm = torch.tensor(column_mask_plm, dtype=torch.bool, device=device)
+
         # subword aggregation
-        question_subword_lens = [l for ex in ex_list for l in ex.question_subword_len]
-        batch.question_subword_lens = torch.tensor(question_subword_lens, dtype=torch.long, device=device)
-        table_subword_lens = [l for ex in ex_list for l in ex.table_subword_len]
-        batch.table_subword_lens = torch.tensor(table_subword_lens, dtype=torch.long, device=device)
-        column_subword_lens = [l for ex in ex_list for l in ex.column_subword_len]
-        batch.column_subword_lens = torch.tensor(column_subword_lens, dtype=torch.long, device=device)
+        # question_subword_lens = [l for ex in ex_list for l in ex.question_subword_len]
+        # batch.question_subword_lens = torch.tensor(question_subword_lens, dtype=torch.long, device=device)
+        # table_subword_lens = [l for ex in ex_list for l in ex.table_subword_len]
+        # batch.table_subword_lens = torch.tensor(table_subword_lens, dtype=torch.long, device=device)
+        # column_subword_lens = [l for ex in ex_list for l in ex.column_subword_len]
+        # batch.column_subword_lens = torch.tensor(column_subword_lens, dtype=torch.long, device=device)
 
     batch.question_unk_mask, batch.table_unk_mask, batch.column_unk_mask = None, None, None
     if not train and plm is None:
@@ -159,15 +210,15 @@ class Batch():
 
     @cached_property
     def max_question_subword_len(self):
-        return torch.max(self.question_subword_lens).item()
+        return torch.max(torch.tensor([val for tens in self.question_subword_lens.values() for val in tens])).item()
 
     @cached_property
     def max_table_subword_len(self):
-        return torch.max(self.table_subword_lens).item()
+        return torch.max(torch.tensor([val for tens in self.table_subword_lens.values() for val in tens])).item()
 
     @cached_property
     def max_column_subword_len(self):
-        return torch.max(self.column_subword_lens).item()
+        return torch.max(torch.tensor([val for tens in self.column_subword_lens.values() for val in tens])).item()
 
     """ Different types of nodes are seperated instead of concatenated together """
     @cached_property
@@ -194,17 +245,14 @@ class Batch():
     def column_word_mask(self):
         return lens2mask(self.column_word_lens)
 
-    @cached_property
-    def question_subword_mask(self):
-        return lens2mask(self.question_subword_lens)
+    def question_subword_mask(self, idx):
+        return lens2mask(self.question_subword_lens, idx)
 
-    @cached_property
-    def table_subword_mask(self):
-        return lens2mask(self.table_subword_lens)
+    def table_subword_mask(self, idx):
+        return lens2mask(self.table_subword_lens, idx)
 
-    @cached_property
-    def column_subword_mask(self):
-        return lens2mask(self.column_subword_lens)
+    def column_subword_mask(self, idx):
+        return lens2mask(self.column_subword_lens, idx)
 
     def get_frontier_field_idx(self, t):
         ids = []

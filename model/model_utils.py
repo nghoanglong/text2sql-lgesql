@@ -8,7 +8,8 @@ def clones(module, N):
     "Produce N identical layers."
     return nn.ModuleList([copy.deepcopy(module) for _ in range(N)])
 
-def lens2mask(lens):
+def lens2mask(lens, idx):
+    lens = lens[idx]
     bsize = lens.numel()
     max_len = lens.max()
     masks = torch.arange(0, max_len).type_as(lens).to(lens.device).repeat(bsize, 1).lt(lens.unsqueeze(1))
